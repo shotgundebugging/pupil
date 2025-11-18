@@ -1,8 +1,18 @@
+
 <h1><%= @scenario.name %></h1>
 
 <p><%= simple_format(@scenario.description) %></p>
 
+<% if @scenario.rgb_video.attached? %>
+  <h2>RGB video</h2>
+  <video controls width="848" height="480">
+    <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+    Your browser does not support the video tag
+  </video>
+<% else %>
+  <p>No RGB video uploaded for this scenario.</p>
+<% end %>
+
 <p>
   <%= link_to "Back to scenarios", scenarios_path %>
 </p>
-

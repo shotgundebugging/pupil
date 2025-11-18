@@ -11,6 +11,11 @@
     <%= f.text_area :description, rows: 3 %>
   </p>
 
+    <p>
+    <%= f.label :rgb_video, "RGB video" %><br>
+    <%= f.file_field :rgb_video, accept: "video/*" %>
+  </p>
+
   <p>
     <%= f.submit "Create Scenario" %>
   </p>
