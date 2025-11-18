@@ -27,6 +27,6 @@ class ScenariosController < ApplicationController
   end
 
   def scenario_params
-    params.require(:scenario).permit(:name, :description, :rgb_video)
+    params.require(:scenario).permit(:name, :description, :rgb_video, :depth_video)
   end
 end

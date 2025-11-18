@@ -11,9 +11,14 @@
     <%= f.text_area :description, rows: 3 %>
   </p>
 
-    <p>
+  <p>
     <%= f.label :rgb_video, "RGB video" %><br>
     <%= f.file_field :rgb_video, accept: "video/*" %>
+  </p>
+
+  <p>
+    <%= f.label :depth_video, "Depth video" %><br>
+    <%= f.file_field :depth_video, accept: "video/*" %>
   </p>
 
   <p>

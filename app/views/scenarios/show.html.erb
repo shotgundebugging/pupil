@@ -7,10 +7,20 @@
   <h2>RGB video</h2>
   <video controls width="848" height="480">
     <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-    Your browser does not support the video tag
+    Your browser does not support the video tag.
   </video>
 <% else %>
   <p>No RGB video uploaded for this scenario.</p>
+<% end %>
+
+<% if @scenario.depth_video.attached? %>
+  <h2>Depth video</h2>
+  <video controls width="848" height="480">
+    <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+<% else %>
+  <p>No depth video uploaded for this scenario.</p>
 <% end %>
 
 <p>
