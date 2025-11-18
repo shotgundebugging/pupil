@@ -1,0 +1,14 @@
+<h1>Scenarios</h1>
+
+<p>
+  <%= link_to "New scenario", new_scenario_path %>
+</p>
+
+<ul>
+  <% @scenarios.each do |scenario| %>
+    <li>
+      <%= link_to scenario.name.presence || "(unnamed scenario)", scenario_path(scenario) %>
+    </li>
+  <% end %>
+</ul>
+

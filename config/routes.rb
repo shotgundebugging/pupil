@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  get "scenarios/index"
+  get "scenarios/show"
+  get "scenarios/new"
+  get "scenarios/create"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -11,4 +15,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  resources :scenarios, only: [ :index, :show, :new, :create ]
+  root "scenarios#index"
 end
