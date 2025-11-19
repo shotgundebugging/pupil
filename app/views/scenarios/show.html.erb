@@ -3,40 +3,69 @@
 
 <p><%= simple_format(@scenario.description) %></p>
 
-<% if @scenario.rgb_video.attached? %>
+<% if @scenario.rgb_video.attached? || @scenario.depth_video.attached? %>
   <div
     data-controller="synced-videos"
     data-synced-videos-fps-value="30">
 
-    <h2>RGB video</h2>
-    <video
-      data-synced-videos-target="rgb"
-      controls
-      width="848"
-      height="480">
-      <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
+    <div style="margin: 1rem 0;">
+      <button type="button"
+              data-synced-videos-target="playPause"
+              data-action="click->synced-videos#togglePlay">
+        Play
+      </button>
+      <input type="range"
+             value="0"
+             min="0"
+             step="0.01"
+             style="width: 400px; vertical-align: middle;"
+             data-synced-videos-target="scrubber"
+             data-action="input->synced-videos#scrub">
+      <span style="margin-left: .5rem;">
+        Time:
+        <span data-synced-videos-target="timeDisplay"></span>
+        |
+        <span data-synced-videos-target="frameDisplay"></span>
+      </span>
+    </div>
 
-    <p>
-      Time:
-      <span data-synced-videos-target="timeDisplay"></span>
-      |
-      <span data-synced-videos-target="frameDisplay"></span>
-    </p>
+    <% if @scenario.rgb_video.attached? %>
+      <h2>RGB video</h2>
+      <video
+        data-synced-videos-target="rgb"
+        width="848"
+        height="480">
+        <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    <% else %>
+      <p>No RGB video uploaded for this scenario.</p>
+    <% end %>
+
+    <% if @scenario.depth_video.attached? %>
+      <h2>Depth video</h2>
+      <video
+        data-synced-videos-target="depth"
+        width="848" height="480">
+        <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    <% else %>
+      <p>No depth video uploaded for this scenario.</p>
+    <% end %>
   </div>
 <% else %>
-  <p>No RGB video uploaded for this scenario.</p>
+  <p>No videos uploaded for this scenario.</p>
 <% end %>
 
-<% if @scenario.depth_video.attached? %>
-  <h2>Depth video</h2>
-  <video controls width="848" height="480">
-    <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+<h2 class="mt-6">Annotations</h2>
+
+<% if @scenario.annotations.any? %>
+  <div>
+    <%= render @scenario.annotations %>
+  </div>
 <% else %>
-  <p>No depth video uploaded for this scenario.</p>
+  <p>No annotations yet.</p>
 <% end %>
 
 <p>
