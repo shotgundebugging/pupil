@@ -4,11 +4,27 @@
 <p><%= simple_format(@scenario.description) %></p>
 
 <% if @scenario.rgb_video.attached? %>
-  <h2>RGB video</h2>
-  <video controls width="848" height="480">
-    <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <div
+    data-controller="synced-videos"
+    data-synced-videos-fps-value="30">
+
+    <h2>RGB video</h2>
+    <video
+      data-synced-videos-target="rgb"
+      controls
+      width="848"
+      height="480">
+      <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+
+    <p>
+      Time:
+      <span data-synced-videos-target="timeDisplay"></span>
+      |
+      <span data-synced-videos-target="frameDisplay"></span>
+    </p>
+  </div>
 <% else %>
   <p>No RGB video uploaded for this scenario.</p>
 <% end %>
