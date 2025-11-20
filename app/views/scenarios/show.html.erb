@@ -29,34 +29,52 @@
       </span>
     </div>
 
-    <% if @scenario.rgb_video.attached? %>
-      <h2>RGB video</h2>
-      <video
-        data-synced-videos-target="rgb"
-        width="848"
-        height="480">
-        <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    <% else %>
-      <p>No RGB video uploaded for this scenario.</p>
-    <% end %>
+    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+      <div style="flex: 1;">
+        <% if @scenario.rgb_video.attached? %>
+          <h2>RGB video</h2>
+          <video
+            data-synced-videos-target="rgb"
+            width="424"
+            height="240">
+            <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        <% else %>
+          <p>No RGB video uploaded for this scenario.</p>
+        <% end %>
+      </div>
 
-    <% if @scenario.depth_video.attached? %>
-      <h2>Depth video</h2>
-      <video
-        data-synced-videos-target="depth"
-        width="848" height="480">
-        <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    <% else %>
-      <p>No depth video uploaded for this scenario.</p>
-    <% end %>
+      <div style="flex: 1;">
+        <% if @scenario.depth_video.attached? %>
+          <h2>Depth video</h2>
+          <video
+            data-synced-videos-target="depth"
+            width="424" height="240">
+            <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        <% else %>
+          <p>No depth video uploaded for this scenario.</p>
+        <% end %>
+      </div>
+    </div>
   </div>
 <% else %>
   <p>No videos uploaded for this scenario.</p>
 <% end %>
+
+<hr class="my-4">
+
+<div data-controller="annotations">
+  <h2>Annotation canvas (RGB frame snapshot area)</h2>
+  <canvas
+    data-annotations-target="canvas"
+    width="848"
+    height="480"
+    style="border: 1px solid #ccc;">
+  </canvas>
+</div>
 
 <h2 class="mt-6">Annotations</h2>
 

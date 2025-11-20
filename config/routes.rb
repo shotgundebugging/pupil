@@ -16,6 +16,8 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  resources :scenarios, only: [ :index, :show, :new, :create ]
+  resources :scenarios, only: [ :index, :show, :new, :create ] do
+    resources :annotations, only: [:index]
+  end
   root "scenarios#index"
 end
