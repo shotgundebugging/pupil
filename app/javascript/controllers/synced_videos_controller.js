@@ -6,14 +6,11 @@ export default class extends Controller {
     "depth",
     "timeDisplay",
     "frameDisplay",
-    "playPause",
-    "scrubber",
     "slider",
     "rgbOverlay",
     "depthOverlay",
   ]
   static values = { fps: Number, baseWidth: Number, baseHeight: Number }
-  static values = { fps: Number }
 
   connect() {
     if (!this.hasFpsValue) this.fpsValue = 30
@@ -22,7 +19,7 @@ export default class extends Controller {
 
     this._onRgbUpdate = () => this.updateFromVideo("rgb")
     this._onDepthUpdate = () => this.updateFromVideo("depth")
-    this._onMetadata = () => this.updateDurationUI()
+    this._onMetadata = () => this.updateFromVideo()
     this._isSyncing = false
 
     if (this.hasRgbTarget) {
@@ -30,8 +27,7 @@ export default class extends Controller {
       this.rgbTarget.addEventListener("loadeddata", this._onRgbUpdate)
       this.rgbTarget.addEventListener("seeked", this._onRgbUpdate)
       this.rgbTarget.addEventListener("timeupdate", this._onRgbUpdate)
-      this.rgbTarget.addEventListener("pause", this._onRgbUpdate)
-      this.rgbTarget.addEventListener("play", this._onRgbUpdate)
+      // keep displays in sync on time changes
     }
 
     if (this.hasDepthTarget) {
@@ -39,13 +35,11 @@ export default class extends Controller {
       this.depthTarget.addEventListener("loadeddata", this._onDepthUpdate)
       this.depthTarget.addEventListener("seeked", this._onDepthUpdate)
       this.depthTarget.addEventListener("timeupdate", this._onDepthUpdate)
-      this.depthTarget.addEventListener("pause", this._onDepthUpdate)
-      this.depthTarget.addEventListener("play", this._onDepthUpdate)
+      // keep displays in sync on time changes
     }
 
-    this.updateDurationUI()
     this.updateFromVideo()
-    this.updatePlayPauseUI()
+    // no play/pause UI
   }
 
   disconnect() {
@@ -53,15 +47,13 @@ export default class extends Controller {
       this.rgbTarget.removeEventListener("loadedmetadata", this._onMetadata)
       this.rgbTarget.removeEventListener("seeked", this._onRgbUpdate)
       this.rgbTarget.removeEventListener("timeupdate", this._onRgbUpdate)
-      this.rgbTarget.removeEventListener("pause", this._onRgbUpdate)
-      this.rgbTarget.removeEventListener("play", this._onRgbUpdate)
+      
     }
     if (this.hasDepthTarget) {
       this.depthTarget.removeEventListener("loadedmetadata", this._onMetadata)
       this.depthTarget.removeEventListener("seeked", this._onDepthUpdate)
       this.depthTarget.removeEventListener("timeupdate", this._onDepthUpdate)
-      this.depthTarget.removeEventListener("pause", this._onDepthUpdate)
-      this.depthTarget.removeEventListener("play", this._onDepthUpdate)
+      
     }
   }
 
@@ -91,9 +83,7 @@ export default class extends Controller {
     if (this.hasSliderTarget) {
       this.sliderTarget.value = String(ratio * 100)
     }
-    if (this.hasScrubberTarget) {
-      this.scrubberTarget.value = String(currentTime)
-    }
+    
 
     if (this.hasTimeDisplayTarget) {
       this.timeDisplayTarget.textContent = `${currentTime.toFixed(2)}s`
@@ -116,61 +106,24 @@ export default class extends Controller {
     this.element.dispatchEvent(evt)
     document.dispatchEvent(evt)
 
-    this.updatePlayPauseUI()
+    // no play/pause UI
   }
 
-  updateDurationUI() {
-    if (!this.hasScrubberTarget) return
-    const durations = []
-    if (this.hasRgbTarget && isFinite(this.rgbTarget.duration)) durations.push(this.rgbTarget.duration)
-    if (this.hasDepthTarget && isFinite(this.depthTarget.duration)) durations.push(this.depthTarget.duration)
-    const max = durations.length ? Math.max(...durations) : 0
-    if (max > 0) {
-      this.scrubberTarget.max = String(max)
-      if (!this.scrubberTarget.hasAttribute("step")) this.scrubberTarget.step = "0.01"
-      if (!this.scrubberTarget.hasAttribute("min")) this.scrubberTarget.min = "0"
-    } else {
-      this.scrubberTarget.removeAttribute("max")
-    }
-  }
+  
 
-  togglePlay(event) {
-    const any = this.master
-    if (!any) return
-    if (this.isPlaying(any)) {
-      this.pauseBoth()
-    } else {
-      this.playBoth()
-    }
-    this.updatePlayPauseUI()
-  }
+  
 
-  scrub(event) {
-    const val = parseFloat(this.scrubberTarget.value)
-    const t = isFinite(val) ? val : 0
-    this.seekBoth(t)
-    this.updateFromVideo()
-  }
+  
 
   seek(event) {
     const any = this.master
     if (!any || !isFinite(any.duration) || any.duration <= 0) return
     const percent = Math.max(0, Math.min(100, parseFloat(this.sliderTarget?.value || "0")))
     const t = any.duration * (percent / 100)
+    // Clear any selected annotation overlay when seeking
+    this.clearSelectedAnnotation()
     this.seekBoth(t)
     this.updateFromVideo()
-  }
-
-  playBoth() {
-    const ops = []
-    if (this.hasRgbTarget) ops.push(this.rgbTarget.play().catch(() => {}))
-    if (this.hasDepthTarget) ops.push(this.depthTarget.play().catch(() => {}))
-    Promise.allSettled(ops)
-  }
-
-  pauseBoth() {
-    if (this.hasRgbTarget) this.rgbTarget.pause()
-    if (this.hasDepthTarget) this.depthTarget.pause()
   }
 
   seekBoth(t) {
@@ -183,18 +136,6 @@ export default class extends Controller {
     }
   }
 
-  isPlaying(video) {
-    return !!video && !video.paused && !video.ended && video.readyState > 2
-  }
-
-  updatePlayPauseUI() {
-    if (!this.hasPlayPauseTarget) return
-    const any = this.master
-    const label = this.isPlaying(any) ? "Pause" : "Play"
-    if (this.playPauseTarget.textContent !== label) {
-      this.playPauseTarget.textContent = label
-    }
-  }
 
   // Annotation overlay handling
   selectAnnotation(event) {
@@ -237,5 +178,11 @@ export default class extends Controller {
     rect.style.border = stroke
     rect.style.background = fill
     overlay.appendChild(rect)
+  }
+
+  clearSelectedAnnotation() {
+    if (!this._selectedBox) return
+    this._selectedBox = null
+    this.drawSelectedBox()
   }
 }
