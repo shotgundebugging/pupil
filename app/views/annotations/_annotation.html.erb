@@ -1,5 +1,12 @@
 <div class="border-b py-1">
-  <strong><%= annotation.label %></strong>
-  @ frame <%= annotation.frame_index %> (<%= annotation.time_sec.round(2) %>s)
+  <button type="button"
+          data-action="click->synced-videos#selectAnnotation"
+          data-x="<%= annotation.x %>"
+          data-y="<%= annotation.y %>"
+          data-width="<%= annotation.width %>"
+          data-height="<%= annotation.height %>">
+    <strong><%= annotation.label %></strong>
+    @ frame <%= annotation.frame_index %> (<%= annotation.time_sec.round(2) %>s)
+  </button>
+  
 </div>
-

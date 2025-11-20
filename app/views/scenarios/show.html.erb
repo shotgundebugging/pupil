@@ -10,25 +10,33 @@
 
     <div class="flex gap-4">
       <% if @scenario.rgb_video.attached? %>
-        <video
-          data-synced-videos-target="rgb"
-          preload="auto"
-          width="424"
-          height="240">
-          <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-        </video>
+        <div style="position: relative; width: 424px; height: 240px;">
+          <video
+            data-synced-videos-target="rgb"
+            preload="auto"
+            width="424"
+            height="240"
+            style="display:block;">
+            <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+          </video>
+          <div data-synced-videos-target="rgbOverlay" style="pointer-events:none; position:absolute; inset:0;"></div>
+        </div>
       <% else %>
         <p>No RGB video uploaded.</p>
       <% end %>
 
       <% if @scenario.depth_video.attached? %>
-        <video
-          data-synced-videos-target="depth"
-          preload="auto"
-          width="424"
-          height="240">
-          <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
-        </video>
+        <div style="position: relative; width: 424px; height: 240px;">
+          <video
+            data-synced-videos-target="depth"
+            preload="auto"
+            width="424"
+            height="240"
+            style="display:block;">
+            <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+          </video>
+          <div data-synced-videos-target="depthOverlay" style="pointer-events:none; position:absolute; inset:0;"></div>
+        </div>
       <% else %>
         <p>No depth video uploaded.</p>
       <% end %>

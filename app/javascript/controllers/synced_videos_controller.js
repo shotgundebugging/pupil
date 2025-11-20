@@ -9,11 +9,16 @@ export default class extends Controller {
     "playPause",
     "scrubber",
     "slider",
+    "rgbOverlay",
+    "depthOverlay",
   ]
+  static values = { fps: Number, baseWidth: Number, baseHeight: Number }
   static values = { fps: Number }
 
   connect() {
     if (!this.hasFpsValue) this.fpsValue = 30
+    if (!this.hasBaseWidthValue) this.baseWidthValue = 848
+    if (!this.hasBaseHeightValue) this.baseHeightValue = 480
 
     this._onRgbUpdate = () => this.updateFromVideo("rgb")
     this._onDepthUpdate = () => this.updateFromVideo("depth")
@@ -101,6 +106,9 @@ export default class extends Controller {
       depth.currentTime = currentTime
     }
 
+    // Repaint overlays if a selection exists
+    this.drawSelectedBox()
+
     const evt = new CustomEvent("frame-changed", {
       detail: { currentTime, frameIndex },
       bubbles: true
@@ -186,5 +194,48 @@ export default class extends Controller {
     if (this.playPauseTarget.textContent !== label) {
       this.playPauseTarget.textContent = label
     }
+  }
+
+  // Annotation overlay handling
+  selectAnnotation(event) {
+    const el = event.currentTarget
+    const x = parseFloat(el.dataset.x)
+    const y = parseFloat(el.dataset.y)
+    const width = parseFloat(el.dataset.width)
+    const height = parseFloat(el.dataset.height)
+    if ([x, y, width, height].some(v => !isFinite(v))) return
+    this._selectedBox = { x, y, width, height }
+    this.drawSelectedBox()
+  }
+
+  drawSelectedBox() {
+    if (!this._selectedBox) {
+      this.clearOverlay(this.rgbOverlayTarget)
+      this.clearOverlay(this.depthOverlayTarget)
+      return
+    }
+    if (this.hasRgbOverlayTarget) this.drawBoxOnOverlay(this.rgbOverlayTarget, this._selectedBox, "rgba(255,0,0,0.0)", "2px solid red")
+    if (this.hasDepthOverlayTarget) this.drawBoxOnOverlay(this.depthOverlayTarget, this._selectedBox, "rgba(0,0,255,0.0)", "2px solid #00d")
+  }
+
+  clearOverlay(overlay) {
+    if (!overlay) return
+    overlay.innerHTML = ""
+  }
+
+  drawBoxOnOverlay(overlay, box, fill, stroke) {
+    if (!overlay) return
+    overlay.innerHTML = ""
+    const scaleX = overlay.clientWidth / this.baseWidthValue
+    const scaleY = overlay.clientHeight / this.baseHeightValue
+    const rect = document.createElement("div")
+    rect.style.position = "absolute"
+    rect.style.left = `${Math.round(box.x * scaleX)}px`
+    rect.style.top = `${Math.round(box.y * scaleY)}px`
+    rect.style.width = `${Math.round(box.width * scaleX)}px`
+    rect.style.height = `${Math.round(box.height * scaleY)}px`
+    rect.style.border = stroke
+    rect.style.background = fill
+    overlay.appendChild(rect)
   }
 }
