@@ -8,82 +8,92 @@
     data-controller="synced-videos"
     data-synced-videos-fps-value="30">
 
-    <div style="margin: 1rem 0;">
-      <button type="button"
-              data-synced-videos-target="playPause"
-              data-action="click->synced-videos#togglePlay">
-        Play
-      </button>
-      <input type="range"
-             value="0"
-             min="0"
-             step="0.01"
-             style="width: 400px; vertical-align: middle;"
-             data-synced-videos-target="scrubber"
-             data-action="input->synced-videos#scrub">
-      <span style="margin-left: .5rem;">
-        Time:
-        <span data-synced-videos-target="timeDisplay"></span>
-        |
-        <span data-synced-videos-target="frameDisplay"></span>
-      </span>
+    <div class="flex gap-4">
+      <% if @scenario.rgb_video.attached? %>
+        <video
+          data-synced-videos-target="rgb"
+          width="424"
+          height="240">
+          <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+        </video>
+      <% else %>
+        <p>No RGB video uploaded.</p>
+      <% end %>
+
+      <% if @scenario.depth_video.attached? %>
+        <video
+          data-synced-videos-target="depth"
+          width="424"
+          height="240">
+          <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+        </video>
+      <% else %>
+        <p>No depth video uploaded.</p>
+      <% end %>
     </div>
 
-    <div style="display: flex; gap: 1rem; align-items: flex-start;">
-      <div style="flex: 1;">
-        <% if @scenario.rgb_video.attached? %>
-          <h2>RGB video</h2>
-          <video
-            data-synced-videos-target="rgb"
-            width="424"
-            height="240">
-            <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        <% else %>
-          <p>No RGB video uploaded for this scenario.</p>
-        <% end %>
+    <div class="mt-4 flex items-center gap-2">
+      <button data-action="click->synced-videos#togglePlay">
+        Play/Pause
+      </button>
+
+      <input type="range"
+             min="0" max="100" value="0" step="0.01"
+             data-synced-videos-target="slider"
+             data-action="input->synced-videos#seek">
+
+      Time:
+      <span data-synced-videos-target="timeDisplay"></span>
+      |
+      <span data-synced-videos-target="frameDisplay"></span>
+    </div>
+
+    <hr class="my-4">
+
+    <div
+      data-controller="annotations"
+      data-annotations-create-url-value="<%= scenario_annotations_path(@scenario) %>"
+      data-action="frame-changed@document->annotations#onFrameChanged">
+
+      <h2>Annotation canvas (RGB frame snapshot area)</h2>
+      <canvas
+        data-annotations-target="canvas"
+        width="848"
+        height="480"
+        style="border: 1px solid #ccc;">
+      </canvas>
+
+      <div class="mt-2">
+        <label for="annotation_label">Label:</label>
+        <select id="annotation_label" data-annotations-target="labelSelect">
+          <% ["sidewalk", "curb", "stair", "obstacle", "car", "person"].each do |label| %>
+            <option value="<%= label %>"><%= label %></option>
+          <% end %>
+        </select>
+
+        <button
+          class="ml-2"
+          data-action="click->annotations#saveCurrentAnnotation">
+          Save annotation
+        </button>
+
+        <button class="ml-2" data-action="click->annotations#clearAnnotation">Clear</button>
+
+        <span class="ml-4" data-annotations-target="info">x: –, y: –, w: –, h: –</span>
       </div>
 
-      <div style="flex: 1;">
-        <% if @scenario.depth_video.attached? %>
-          <h2>Depth video</h2>
-          <video
-            data-synced-videos-target="depth"
-            width="424" height="240">
-            <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
+      <h2 class="mt-4">Annotations</h2>
+      <turbo-frame id="annotations">
+        <% if @scenario.annotations.any? %>
+          <%= render @scenario.annotations %>
         <% else %>
-          <p>No depth video uploaded for this scenario.</p>
+          <p>No annotations yet.</p>
         <% end %>
-      </div>
+      </turbo-frame>
     </div>
   </div>
 <% else %>
   <p>No videos uploaded for this scenario.</p>
-<% end %>
-
-<hr class="my-4">
-
-<div data-controller="annotations">
-  <h2>Annotation canvas (RGB frame snapshot area)</h2>
-  <canvas
-    data-annotations-target="canvas"
-    width="848"
-    height="480"
-    style="border: 1px solid #ccc;">
-  </canvas>
-</div>
-
-<h2 class="mt-6">Annotations</h2>
-
-<% if @scenario.annotations.any? %>
-  <div>
-    <%= render @scenario.annotations %>
-  </div>
-<% else %>
-  <p>No annotations yet.</p>
 <% end %>
 
 <p>

@@ -1,0 +1,7 @@
+<turbo-stream target="annotations" action="replace">
+  <template>
+    <turbo-frame id="annotations">
+      <%= render partial: "annotations/annotation", collection: @annotations, as: :annotation, formats: [:html] %>
+    </turbo-frame>
+  </template>
+</turbo-stream>

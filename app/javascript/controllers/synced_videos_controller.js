@@ -8,6 +8,7 @@ export default class extends Controller {
     "frameDisplay",
     "playPause",
     "scrubber",
+    "slider",
   ]
   static values = { fps: Number }
 
@@ -21,6 +22,7 @@ export default class extends Controller {
 
     if (this.hasRgbTarget) {
       this.rgbTarget.addEventListener("loadedmetadata", this._onMetadata)
+      this.rgbTarget.addEventListener("loadeddata", this._onRgbUpdate)
       this.rgbTarget.addEventListener("seeked", this._onRgbUpdate)
       this.rgbTarget.addEventListener("timeupdate", this._onRgbUpdate)
       this.rgbTarget.addEventListener("pause", this._onRgbUpdate)
@@ -29,6 +31,7 @@ export default class extends Controller {
 
     if (this.hasDepthTarget) {
       this.depthTarget.addEventListener("loadedmetadata", this._onMetadata)
+      this.depthTarget.addEventListener("loadeddata", this._onDepthUpdate)
       this.depthTarget.addEventListener("seeked", this._onDepthUpdate)
       this.depthTarget.addEventListener("timeupdate", this._onDepthUpdate)
       this.depthTarget.addEventListener("pause", this._onDepthUpdate)
@@ -71,35 +74,39 @@ export default class extends Controller {
   }
 
   updateFromVideo(from = null) {
-    const source = from === "depth" ? this.depthTarget : (from === "rgb" ? this.rgbTarget : this.master)
-    const currentTime = (source?.currentTime) || 0
+    const rgb = this.rgbTarget
+    const depth = this.depthTarget
+    const source = from === "depth" ? depth : (from === "rgb" ? rgb : this.master)
+    const currentTime = (rgb?.currentTime) || (source?.currentTime) || 0
+    const duration = (rgb?.duration) || (source?.duration) || 1
     const fps = this.hasFpsValue ? this.fpsValue : 30
     const frameIndex = Math.floor(currentTime * fps)
 
-    if (this.hasTimeDisplayTarget) {
-      this.timeDisplayTarget.textContent = `${currentTime.toFixed(2)}s`
+    const ratio = duration > 0 ? (currentTime / duration) : 0
+    if (this.hasSliderTarget) {
+      this.sliderTarget.value = String(ratio * 100)
     }
-
-    if (this.hasFrameDisplayTarget) {
-      this.frameDisplayTarget.textContent = `frame ${frameIndex}`
-    }
-
     if (this.hasScrubberTarget) {
       this.scrubberTarget.value = String(currentTime)
     }
 
-    const counterpart = this.other(source)
-    if (counterpart) {
-      const delta = Math.abs((counterpart.currentTime || 0) - currentTime)
-      if (!this._isSyncing && (delta > 0.034)) {
-        this._isSyncing = true
-        try {
-          counterpart.currentTime = currentTime
-        } finally {
-          setTimeout(() => { this._isSyncing = false }, 0)
-        }
-      }
+    if (this.hasTimeDisplayTarget) {
+      this.timeDisplayTarget.textContent = `${currentTime.toFixed(2)}s`
     }
+    if (this.hasFrameDisplayTarget) {
+      this.frameDisplayTarget.textContent = `frame ${frameIndex}`
+    }
+
+    if (depth && Math.abs((depth.currentTime || 0) - currentTime) > 0.05) {
+      depth.currentTime = currentTime
+    }
+
+    const evt = new CustomEvent("frame-changed", {
+      detail: { currentTime, frameIndex },
+      bubbles: true
+    })
+    this.element.dispatchEvent(evt)
+    window.dispatchEvent(evt)
 
     this.updatePlayPauseUI()
   }
@@ -133,6 +140,15 @@ export default class extends Controller {
   scrub(event) {
     const val = parseFloat(this.scrubberTarget.value)
     const t = isFinite(val) ? val : 0
+    this.seekBoth(t)
+    this.updateFromVideo()
+  }
+
+  seek(event) {
+    const any = this.master
+    if (!any || !isFinite(any.duration) || any.duration <= 0) return
+    const percent = Math.max(0, Math.min(100, parseFloat(this.sliderTarget?.value || "0")))
+    const t = any.duration * (percent / 100)
     this.seekBoth(t)
     this.updateFromVideo()
   }
