@@ -12,6 +12,7 @@
       <% if @scenario.rgb_video.attached? %>
         <video
           data-synced-videos-target="rgb"
+          preload="auto"
           width="424"
           height="240">
           <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
@@ -23,6 +24,7 @@
       <% if @scenario.depth_video.attached? %>
         <video
           data-synced-videos-target="depth"
+          preload="auto"
           width="424"
           height="240">
           <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">

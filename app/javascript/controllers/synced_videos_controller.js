@@ -106,7 +106,7 @@ export default class extends Controller {
       bubbles: true
     })
     this.element.dispatchEvent(evt)
-    window.dispatchEvent(evt)
+    document.dispatchEvent(evt)
 
     this.updatePlayPauseUI()
   }
