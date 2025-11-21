@@ -17,7 +17,12 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   resources :scenarios, only: [ :index, :show, :new, :create ] do
-    resources :annotations, only: [:index, :create]
+    resources :annotations, only: [:index, :create] do
+      collection do
+        delete :destroy_all
+        get :export
+      end
+    end
   end
   root "scenarios#index"
 end

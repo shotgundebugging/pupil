@@ -85,7 +85,9 @@
 
       <!-- Right: Scrollable annotations list -->
       <div style="width: 300px; max-height: 540px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: .5rem;">
-        <h2 style="margin:0 0 .5rem;">Annotations</h2>
+        <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:.5rem;">
+          <h2 style="margin:0;">Annotations</h2>
+        </div>
         <turbo-frame id="annotations">
           <% if @scenario.annotations.any? %>
             <%= render @scenario.annotations %>
@@ -93,6 +95,12 @@
             <p>No annotations yet.</p>
           <% end %>
         </turbo-frame>
+        <div style="display:flex; gap:.5rem; margin-top:.5rem; align-items:center; flex-wrap:wrap;">
+          <%= link_to "Export JSON", export_scenario_annotations_path(@scenario, format: :json), class: "btn btn-ghost btn-xs" %>
+          <%= button_to "Delete all", destroy_all_scenario_annotations_path(@scenario), method: :delete,
+                form: { data: { turbo_confirm: "Delete ALL annotations?" } },
+                class: "btn btn-error btn-xs" %>
+        </div>
       </div>
     </div>
 
