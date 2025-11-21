@@ -1,12 +1,15 @@
-<div class="border-b py-1">
+<div class="border-b border-mission-border">
   <button type="button"
-          data-action="click->synced-videos#selectAnnotation"
           data-x="<%= annotation.x %>"
           data-y="<%= annotation.y %>"
           data-width="<%= annotation.width %>"
-          data-height="<%= annotation.height %>">
-    <strong><%= annotation.label %></strong>
-    @ frame <%= annotation.frame_index %> (<%= annotation.time_sec.round(2) %>s)
+          data-height="<%= annotation.height %>"
+          data-time-sec="<%= annotation.time_sec %>"
+          data-frame-index="<%= annotation.frame_index %>"
+          data-annotation-id="<%= annotation.id %>"
+          class="annotation-row w-full text-left px-2.5 py-2 hover:bg-mission-panel transition flex items-center gap-2">
+    <span class="px-2 py-0.5 rounded border border-mission-border text-xs bg-mission-panel/60"><%= annotation.label %></span>
+    <span class="opacity-70 text-xs">frame <span class="font-mono"><%= annotation.frame_index %></span></span>
+    <span class="opacity-50 text-xs">(<span class="font-mono"><%= annotation.time_sec.round(2) %></span>s)</span>
   </button>
-  
 </div>

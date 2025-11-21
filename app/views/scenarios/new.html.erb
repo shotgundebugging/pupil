@@ -1,32 +1,40 @@
-<h1>New Scenario</h1>
+<div class="max-w-3xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold">New Scenario</h1>
+    <p class="opacity-70 text-sm">Upload synchronized videos and add context.</p>
+  </div>
 
-<%= form_with model: @scenario, local: true do |f| %>
-  <p>
-    <%= f.label :name %><br>
-    <%= f.text_field :name %>
-  </p>
+  <div class="rounded-xl bg-mission-surface border border-mission-border">
+    <div class="p-6">
+      <%= form_with model: @scenario, local: true do |f| %>
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <label class="block text-sm text-gray-300 mb-1">Name</label>
+            <%= f.text_field :name, class: "block w-full rounded-md border border-mission-border bg-mission-panel text-gray-100 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-400/60", placeholder: "e.g. Lab corridor run #12" %>
+          </div>
 
-  <p>
-    <%= f.label :description %><br>
-    <%= f.text_area :description, rows: 3 %>
-  </p>
+          <div>
+            <label class="block text-sm text-gray-300 mb-1">Description</label>
+            <%= f.text_area :description, rows: 3, class: "block w-full rounded-md border border-mission-border bg-mission-panel text-gray-100 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-400/60", placeholder: "Optional notes, environment, obstacles…" %>
+          </div>
 
-  <p>
-    <%= f.label :rgb_video, "RGB video" %><br>
-    <%= f.file_field :rgb_video, accept: "video/*" %>
-  </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-gray-300 mb-1">RGB video</label>
+              <%= f.file_field :rgb_video, accept: "video/*", class: "block w-full text-sm file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:text-cyan-200 hover:file:bg-cyan-500/30 cursor-pointer border border-mission-border rounded-md bg-mission-panel" %>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-300 mb-1">Depth video</label>
+              <%= f.file_field :depth_video, accept: "video/*", class: "block w-full text-sm file:mr-4 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-cyan-500/20 file:text-cyan-200 hover:file:bg-cyan-500/30 cursor-pointer border border-mission-border rounded-md bg-mission-panel" %>
+            </div>
+          </div>
 
-  <p>
-    <%= f.label :depth_video, "Depth video" %><br>
-    <%= f.file_field :depth_video, accept: "video/*" %>
-  </p>
-
-  <p>
-    <%= f.submit "Create Scenario" %>
-  </p>
-<% end %>
-
-<p>
-  <%= link_to "Back", scenarios_path %>
-</p>
-
+          <div class="flex items-center gap-3 pt-2">
+            <%= f.submit "Create Scenario", class: "inline-flex items-center px-4 py-2 rounded-md bg-cyan-600 text-white hover:bg-cyan-500 transition border border-cyan-400/40" %>
+            <%= link_to "Cancel", scenarios_path, class: "inline-flex items-center px-3 py-2 rounded-md border border-mission-border bg-mission-panel hover:bg-mission-surface transition text-gray-200" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

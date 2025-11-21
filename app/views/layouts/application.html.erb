@@ -21,9 +21,55 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <!-- Cool mission-control fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind via CDN with custom mission-control theme (no DaisyUI) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              mission: {
+                base: '#050814',
+                surface: '#0b1020',
+                panel: '#101827',
+                border: '#1f2937',
+                primary: '#22d3ee',
+                accent: '#2dd4bf',
+                info: '#38bdf8',
+                success: '#22c55e',
+                warning: '#fbbf24',
+                error: '#ef4444',
+              }
+            },
+            fontFamily: {
+              sans: ["Space Grotesk", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
+            },
+          }
+        }
+      }
+    </script>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="min-h-screen bg-mission-base text-gray-100 font-sans">
+    <header class="bg-mission-surface border-b border-mission-border">
+      <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center justify-between">
+          <span class="text-lg font-semibold tracking-wide">Pupil</span>
+          <nav class="text-sm text-gray-400">
+            <!-- Add quick links here if desired -->
+          </nav>
+        </div>
+      </div>
+    </header>
+    <main class="max-w-7xl mx-auto p-4">
+      <%= yield %>
+    </main>
   </body>
 </html>

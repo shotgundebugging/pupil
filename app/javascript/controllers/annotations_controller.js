@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Handles drawing a rectangle and saving it as an annotation
+// Minimal rectangle drawing + save
 export default class extends Controller {
   static targets = ["canvas", "labelSelect", "info"]
   static values = { createUrl: String }
@@ -21,19 +21,8 @@ export default class extends Controller {
     this.canvasTarget.addEventListener("mouseup", this._onMouseUp)
     this.canvasTarget.addEventListener("mouseleave", this._onMouseUp)
 
-    const container = this.element.closest('[data-controller~="synced-videos"]')
-    this.rgbVideo = container?.querySelector('[data-synced-videos-target="rgb"]') || null
-
-    // Try to draw immediately if the video is ready; otherwise wait
-    if (this.rgbVideo && this.rgbVideo.readyState > 2) {
-      this.drawBackground()
-    } else if (this.rgbVideo) {
-      this._onLoadedData = () => { this.drawBackground() }
-      this.rgbVideo.addEventListener("loadeddata", this._onLoadedData, { once: true })
-      this.rgbVideo.addEventListener("timeupdate", this._onLoadedData, { once: true })
-      this.rgbVideo.addEventListener("seeked", this._onLoadedData, { once: true })
-    }
-    requestAnimationFrame(() => this.drawBackground())
+    // Initial paint
+    this.redraw()
   }
 
   disconnect() {
@@ -43,11 +32,10 @@ export default class extends Controller {
     this.canvasTarget.removeEventListener("mouseleave", this._onMouseUp)
   }
 
+  // Optional: capture frame/time if emitted by synced-videos
   onFrameChanged(event) {
-    this.currentFrameIndex = event.detail.frameIndex
-    this.currentTimeSec = event.detail.currentTime
-    this.drawBackground()
-    this.overlayBox()
+    this.currentFrameIndex = event.detail.frameIndex || 0
+    this.currentTimeSec = event.detail.currentTime || 0
   }
 
   onMouseDown(event) {
@@ -60,15 +48,10 @@ export default class extends Controller {
 
   onMouseMove(event) {
     if (!this.isDrawing) return
-
     const rect = this.canvasTarget.getBoundingClientRect()
     const x = event.clientX - rect.left
     const y = event.clientY - rect.top
-
-    const width = x - this.startX
-    const height = y - this.startY
-
-    this.currentBox = { x: this.startX, y: this.startY, width, height }
+    this.currentBox = { x: this.startX, y: this.startY, width: x - this.startX, height: y - this.startY }
     this.redraw()
   }
 
@@ -79,31 +62,27 @@ export default class extends Controller {
   }
 
   clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvasTarget.width, this.canvasTarget.height)
+    const c = this.canvasTarget
+    this.ctx.fillStyle = getComputedStyle(c).backgroundColor || "#000"
+    this.ctx.clearRect(0, 0, c.width, c.height)
+    // Give a subtle background
+    this.ctx.fillStyle = "rgba(5,8,20,1)"
+    this.ctx.fillRect(0, 0, c.width, c.height)
   }
 
-  drawBackground() {
-    this.clearCanvas()
-    if (this.rgbVideo && this.rgbVideo.readyState > 2) {
-      const c = this.canvasTarget
-      this.ctx.drawImage(this.rgbVideo, 0, 0, c.width, c.height)
-    }
-  }
-
-  overlayBox() {
-    if (this.currentBox) {
-      let { x, y, width, height } = this.currentBox
-      if (width < 0) { x += width; width = Math.abs(width) }
-      if (height < 0) { y += height; height = Math.abs(height) }
-      this.ctx.strokeStyle = "red"
-      this.ctx.lineWidth = 2
-      this.ctx.strokeRect(x, y, width, height)
-    }
+  drawBox() {
+    if (!this.currentBox) return
+    let { x, y, width, height } = this.currentBox
+    if (width < 0) { x += width; width = Math.abs(width) }
+    if (height < 0) { y += height; height = Math.abs(height) }
+    this.ctx.strokeStyle = "#22d3ee"
+    this.ctx.lineWidth = 2
+    this.ctx.strokeRect(x, y, width, height)
   }
 
   redraw() {
-    this.drawBackground()
-    this.overlayBox()
+    this.clearCanvas()
+    this.drawBox()
     this.updateInfo()
   }
 
@@ -138,14 +117,11 @@ export default class extends Controller {
 
     const payload = {
       annotation: {
-        frame_index: this.currentFrameIndex,
-        time_sec: this.currentTimeSec,
+        frame_index: this.currentFrameIndex || 0,
+        time_sec: this.currentTimeSec || 0,
         stream: "rgb",
-        label: this.labelSelectTarget.value,
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(width),
-        height: Math.round(height)
+        label: this.hasLabelSelectTarget ? this.labelSelectTarget.value : "",
+        x, y, width, height,
       }
     }
 

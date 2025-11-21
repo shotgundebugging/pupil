@@ -1,121 +1,147 @@
-
-<h1><%= @scenario.name %></h1>
-
-<p><%= simple_format(@scenario.description) %></p>
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <h1 class="text-2xl font-semibold"><%= @scenario.name.presence || "(unnamed scenario)" %></h1>
+    <% if @scenario.description.present? %>
+      <p class="opacity-70 text-sm"><%= @scenario.description %></p>
+    <% end %>
+  </div>
+  <%= link_to "Back to scenarios", scenarios_path, class: "inline-flex items-center px-3 py-1.5 rounded-md border border-mission-border bg-mission-panel hover:bg-mission-surface transition text-gray-200" %>
+</div>
 
 <% if @scenario.rgb_video.attached? || @scenario.depth_video.attached? %>
   <div
     data-controller="synced-videos"
     data-synced-videos-fps-value="30"
-    style="display:flex; flex-direction: column; gap: 1rem;">
-
-    <!-- Main row: Videos (left), Canvas (center), Annotations list (right) -->
-    <div style="display:flex; gap: 1.5rem; align-items:flex-start;">
-      <!-- Left: Videos with overlays (stacked) -->
-      <div style="display:flex; flex-direction: column; gap: 1rem;">
+    data-synced-videos-debug-value="true"
+    class="flex flex-col gap-4"
+  >
+    <div class="grid grid-cols-1 xl:grid-cols-[460px_minmax(520px,_1fr)_320px] gap-4 items-start">
+      <!-- Left: Videos -->
+      <div class="flex flex-col gap-4">
         <% if @scenario.rgb_video.attached? %>
-          <div style="position: relative; width: 424px; height: 240px;">
-            <video
-              data-synced-videos-target="rgb"
-              preload="auto"
-              width="424"
-              height="240"
-              style="display:block;">
-              <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
-            </video>
-            <div data-synced-videos-target="rgbOverlay" style="pointer-events:none; position:absolute; inset:0;"></div>
+          <div class="rounded-xl bg-mission-surface border border-mission-border">
+            <div class="p-3">
+              <h2 class="text-sm mb-2 text-gray-300">RGB</h2>
+              <div class="relative w-[424px] h-[240px] max-w-full">
+                <video
+                  data-synced-videos-target="rgb"
+                  preload="auto"
+                  width="424"
+                  height="240"
+                  class="block rounded"
+                >
+                  <source src="<%= url_for(@scenario.rgb_video) %>" type="video/mp4">
+                </video>
+                <div data-synced-videos-target="rgbOverlay" class="pointer-events-none absolute inset-0"></div>
+              </div>
+            </div>
           </div>
         <% else %>
-          <p>No RGB video uploaded.</p>
+          <div class="rounded-md border border-yellow-700 bg-yellow-900/20 text-yellow-200 px-3 py-2 text-sm">No RGB video uploaded.</div>
         <% end %>
 
         <% if @scenario.depth_video.attached? %>
-          <div style="position: relative; width: 424px; height: 240px;">
-            <video
-              data-synced-videos-target="depth"
-              preload="auto"
-              width="424"
-              height="240"
-              style="display:block;">
-              <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
-            </video>
-            <div data-synced-videos-target="depthOverlay" style="pointer-events:none; position:absolute; inset:0;"></div>
+          <div class="rounded-xl bg-mission-surface border border-mission-border">
+            <div class="p-3">
+              <h2 class="text-sm mb-2 text-gray-300">Depth</h2>
+              <div class="relative w-[424px] h-[240px] max-w-full">
+                <video
+                  data-synced-videos-target="depth"
+                  preload="auto"
+                  width="424"
+                  height="240"
+                  class="block rounded"
+                >
+                  <source src="<%= url_for(@scenario.depth_video) %>" type="video/mp4">
+                </video>
+                <div data-synced-videos-target="depthOverlay" class="pointer-events-none absolute inset-0"></div>
+              </div>
+            </div>
           </div>
         <% else %>
-          <p>No depth video uploaded.</p>
+          <div class="rounded-md border border-yellow-700 bg-yellow-900/20 text-yellow-200 px-3 py-2 text-sm">No depth video uploaded.</div>
         <% end %>
       </div>
 
       <!-- Center: Canvas + tools -->
-      <div style="flex:1; min-width: 520px;">
-        <div
-          data-controller="annotations"
-          data-annotations-create-url-value="<%= scenario_annotations_path(@scenario) %>"
-          data-action="frame-changed@document->annotations#onFrameChanged">
+      <div class="min-w-[520px]">
+        <div class="rounded-xl bg-mission-surface border border-mission-border">
+          <div class="p-4">
+            <div
+              data-controller="annotations"
+              data-annotations-create-url-value="<%= scenario_annotations_path(@scenario) %>"
+              data-action="frame-changed@document->annotations#onFrameChanged"
+              class="flex flex-col gap-3"
+            >
+              <div class="flex items-center justify-between text-xs text-gray-400">
+                <div class="px-2 py-0.5 rounded border border-mission-border bg-mission-panel/60">Draw mode</div>
+                <div class="px-1.5 py-0.5 rounded border border-mission-border bg-mission-panel/60 font-mono">Rect</div>
+              </div>
 
-          <h2 style="margin:.25rem 0 .25rem;">Draw mode: Rectangle</h2>
-          <canvas
-            data-annotations-target="canvas"
-            width="848"
-            height="480"
-            style="border: 1px solid #ccc; display:block; max-width:100%; height:auto;">
-          </canvas>
+              <div class="rounded border border-mission-border overflow-hidden">
+                <canvas
+                  data-annotations-target="canvas"
+                  width="848"
+                  height="480"
+                  class="block max-w-full h-auto bg-mission-base"
+                ></canvas>
+              </div>
 
-          <!-- Scrubber under the annotation canvas only -->
-          <div style="margin-top:.5rem;">
-            <input type="range" min="0" max="100" value="0" step="0.01"
-                   data-synced-videos-target="slider"
-                   data-action="input->synced-videos#seek"
-                   style="width: 100%;">
-          </div>
+              <div>
+                <input type="range" min="0" max="100" value="0" step="0.01"
+                       data-synced-videos-target="slider"
+                       data-action="input->synced-videos#seek"
+                       class="w-full accent-cyan-400">
+              </div>
 
-          <div style="margin-top:.5rem; display:flex; align-items:center; gap:.5rem; flex-wrap: wrap;">
-            <label for="annotation_label">Label:</label>
-            <select id="annotation_label" data-annotations-target="labelSelect">
-              <% ["sidewalk", "curb", "stair", "obstacle", "car", "person"].each do |label| %>
-                <option value="<%= label %>"><%= label %></option>
-              <% end %>
-            </select>
-            <button data-action="click->annotations#saveCurrentAnnotation">Save</button>
-            <button data-action="click->annotations#clearAnnotation">Clear</button>
-            <span data-annotations-target="info">x: –, y: –, w: –, h: –</span>
+              <div class="flex items-center gap-2 flex-wrap">
+                <label for="annotation_label" class="text-sm text-gray-300">Label</label>
+                <select id="annotation_label" data-annotations-target="labelSelect" class="h-8 rounded-md border border-mission-border bg-mission-panel text-gray-100 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                  <% ["sidewalk", "curb", "stair", "obstacle", "car", "person"].each do |label| %>
+                    <option value="<%= label %>"><%= label %></option>
+                  <% end %>
+                </select>
+                <button class="h-8 px-3 rounded-md bg-emerald-600 text-white border border-emerald-400/40 hover:bg-emerald-500 transition text-sm" data-action="click->annotations#saveCurrentAnnotation">Save</button>
+                <button class="h-8 px-3 rounded-md border border-mission-border bg-mission-panel hover:bg-mission-surface transition text-sm" data-action="click->annotations#clearAnnotation">Clear</button>
+                <span class="opacity-70 text-sm" data-annotations-target="info">x: –, y: –, w: –, h: –</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Scrollable annotations list -->
-      <div style="width: 300px; max-height: 540px; overflow: auto; border: 1px solid #e5e7eb; border-radius: 6px; padding: .5rem;">
-        <div style="display:flex; align-items:center; justify-content: space-between; margin-bottom:.5rem;">
-          <h2 style="margin:0;">Annotations</h2>
-        </div>
-        <turbo-frame id="annotations">
-          <% if @scenario.annotations.any? %>
-            <%= render @scenario.annotations %>
-          <% else %>
-            <p>No annotations yet.</p>
-          <% end %>
-        </turbo-frame>
-        <div style="display:flex; gap:.5rem; margin-top:.5rem; align-items:center; flex-wrap:wrap;">
-          <%= link_to "Export JSON", export_scenario_annotations_path(@scenario, format: :json), class: "btn btn-ghost btn-xs" %>
-          <%= button_to "Delete all", destroy_all_scenario_annotations_path(@scenario), method: :delete,
-                form: { data: { turbo_confirm: "Delete ALL annotations?" } },
-                class: "btn btn-error btn-xs" %>
+      <!-- Right: Annotations list -->
+      <div class="rounded-xl bg-mission-surface border border-mission-border">
+        <div class="p-3">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-base font-semibold">Annotations</h2>
+            <div class="flex items-center gap-2">
+              <%= link_to "Export", export_scenario_annotations_path(@scenario, format: :json), class: "inline-flex items-center px-2.5 py-1 rounded-md border border-mission-border bg-mission-panel hover:bg-mission-surface transition text-xs" %>
+              <%= button_to "Delete all", destroy_all_scenario_annotations_path(@scenario), method: :delete,
+                    form: { data: { turbo_confirm: "Delete ALL annotations?" } },
+                    class: "inline-flex items-center px-2.5 py-1 rounded-md border border-red-500/40 bg-red-500/20 text-red-200 hover:bg-red-500/30 transition text-xs" %>
+            </div>
+          </div>
+          <div class="max-h-[540px] overflow-auto">
+            <turbo-frame id="annotations">
+              <% if @scenario.annotations.any? %>
+                <%= render @scenario.annotations %>
+              <% else %>
+                <p class="opacity-70 text-sm">No annotations yet.</p>
+              <% end %>
+            </turbo-frame>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Bottom controls bar -->
-    <div style="display:flex; align-items:center; gap:.5rem; padding-top:.5rem; border-top:1px solid #e5e7eb;">
-      <span>Time:</span>
-      <span data-synced-videos-target="timeDisplay"></span>
-      <span>|</span>
-      <span data-synced-videos-target="frameDisplay"></span>
+    <div class="flex items-center gap-2 pt-3 border-t border-mission-border">
+      <span class="opacity-70">Time:</span>
+      <span class="font-mono" data-synced-videos-target="timeDisplay"></span>
+      <span class="opacity-50">|</span>
+      <span class="font-mono" data-synced-videos-target="frameDisplay"></span>
     </div>
   </div>
 <% else %>
-  <p>No videos uploaded for this scenario.</p>
+  <div class="rounded-md border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 px-3 py-2 text-sm">No videos uploaded for this scenario.</div>
 <% end %>
-
-<p>
-  <%= link_to "Back to scenarios", scenarios_path %>
-</p>
