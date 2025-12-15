@@ -1,24 +1,16 @@
-# README
+For the implementation I decided to lean into the modern browser stack and the things I know best: Ruby, Rails, Hotwire, and a thin layer of JavaScript on top of native video primitives.
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+As a prototype I decided to build a small internal web tool whose core is very simple: play the two videos in parallel and let people draw boxes on top of what they see. The RGB and depth streams are shown side by side and kept in sync, so as you scrub or play, both move together. Underneath, a drawing canvas mirrors the current RGB frame; team members can drag to create rectangular annotations (only boxes for now), select a label and save them. 
 
-Things you may want to cover:
+Each annotation is stored with frame index, timestamp, label, and box geometry, so the result is a clean stream of structured “what happened at this time, in this place on the image” data. That raw annotation data is ready to be fed into downstream pipelines, including reinforcement learning setups where these events become observations, rewards, or training signals for navigation policies.
 
-* Ruby version
+Rails gives me the structure: Scenario models with two Active Storage attachments (RGB and depth), and an Annotation model storing frame index, timestamp, label, and box coordinates. The front end is kept intentionally thin. I use the browser’s own video pipeline for decoding, seeking, and playback controls, and when I want a still frame I just draw the current RGB video image onto a <canvas> using drawImage. That same canvas is the annotation surface: a Stimulus controller handles mouse events, draws the rectangle with strokeRect, and remembers the box geometry together with the current video time and frame index coming from the synced-videos controller.
 
-* System dependencies
+For working with the videosI deliberately stayed as close as possible to the platform. I’m not using any external video libraries; everything is driven directly by the browser’s HTMLMediaElement API and its native events. Each <video> element (RGB and depth) is an HTMLMediaElement instance, which exposes a rich set of lifecycle and playback events. I attach one shared handler to the RGB element for a handful of these.
 
-* Configuration
+Turbo handles navigation and form submissions without full page reloads, so uploading new scenarios or editing metadata feels instant. Stimulus is where all the “live” behavior sits: one controller (synced-videos) for coordinating RGB and depth playback, computing time/frame, and emitting a custom frame-changed event; another controller (annotations) listening to that event, updating its internal currentFrameIndex/currentTimeSec state, and managing the canvas and label dropdown. 
 
-* Database creation
+Because everything is wired via data attributes, the Ruby views stay readable and non-JavaScript people on the team can still follow what’s going on.
+For collaboration and quick iteration I rely on TurboStreams. When an annotation is saved, the browser sends a JSON payload to AnnotationsController#create. The server responds with a TurboStream template that replaces the annotations <turbo-frame> with a fresh render of the list. That already gives me live updates for the current user. If multiple people are looking at the same scenario, I can take it one step further and broadcast those TurboStreams via ActionCable. The annotations frame becomes a stream source; whenever anyone adds or edits an annotation, Rails broadcasts a <turbo-stream> message to all subscribers, and every open browser updates in real time. 
 
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+No custom WebSocket protocol, just HTML fragments sent over the wire and patched into the DOM.
