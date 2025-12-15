@@ -1,3 +1,4 @@
+<img width="1600" height="949" alt="unnamed" src="https://github.com/user-attachments/assets/03778cc3-2513-465d-acec-ceab80f2b18b" />
 For the implementation I decided to lean into the modern browser stack and the things I know best: Ruby, Rails, Hotwire, and a thin layer of JavaScript on top of native video primitives.
 
 As a prototype I decided to build a small internal web tool whose core is very simple: play the two videos in parallel and let people draw boxes on top of what they see. The RGB and depth streams are shown side by side and kept in sync, so as you scrub or play, both move together. Underneath, a drawing canvas mirrors the current RGB frame; team members can drag to create rectangular annotations (only boxes for now), select a label and save them. 
